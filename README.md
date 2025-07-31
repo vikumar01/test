@@ -1,14 +1,9 @@
+from sklearn.metrics import f1_score
+import numpy as np
 
-'''
-from sklearn.metrics import precision_recall_curve
-import matplotlib.pyplot as plt
+f1_scores = 2 * (precision * recall) / (precision + recall)
+best_index = np.argmax(f1_scores)
+best_threshold = thresholds[best_index]
 
-precision, recall, thresholds = precision_recall_curve(y_val, y_probs)
-
-plt.plot(thresholds, precision[:-1], label="Precision")
-plt.plot(thresholds, recall[:-1], label="Recall")
-plt.xlabel("Threshold")
-plt.ylabel("Score")
-plt.legend()
-plt.show()
-'''
+print("Best threshold:", best_threshold)
+print("Best F1 score:", f1_scores[best_index])
