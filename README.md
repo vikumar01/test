@@ -1,9 +1,15 @@
-from sklearn.metrics import f1_score
-import numpy as np
+from sklearn.metrics import roc_curve
 
-f1_scores = 2 * (precision * recall) / (precision + recall)
-best_index = np.argmax(f1_scores)
-best_threshold = thresholds[best_index]
+fpr, tpr, roc_thresholds = roc_curve(y_val, y_probs)
+j_scores = tpr - fpr
+j_best_index = np.argmax(j_scores)
+j_best_threshold = roc_thresholds[j_best_index]
 
-print("Best threshold:", best_threshold)
-print("Best F1 score:", f1_scores[best_index])
+print("Threshold using Youden’s J:", j_best_threshold)
+
+
+---
+y_pred_new = (y_probs >= best_threshold).astype(int)
+
+from sklearn.metrics import classification_report
+print(classification_report(y_val, y_pred_new))
