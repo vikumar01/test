@@ -1,51 +1,107 @@
-'''
+1. Logistic Regression Coefficient (coef)
+Each coefficient represents the change in log-odds of the outcome (execute_trade = 1) for a one-unit increase in that feature (after preprocessing).
 
-import statsmodels.api as sm
-from statsmodels.stats.outliers_influence import variance_inflation_factor
+Sign:
 
-# --- Transform training data using same pipeline (without classifier) ---
-X_train_transformed = preprocessor.fit_transform(X_train, y_train)
+Positive → increases probability of trade.
 
-# Get feature names after preprocessing
-feature_names = []
-for name, transformer, cols in preprocessor.transformers_:
-    if name == "num":
-        feature_names.extend(cols)
-    elif name == "ohe":
-        feature_names.extend(transformer.get_feature_names_out(cols))
-    elif name == "target":
-        feature_names.extend(cols)
+Negative → decreases probability.
 
-# Convert to DataFrame
-X_train_df = pd.DataFrame(X_train_transformed, columns=feature_names)
+Magnitude:
 
-# --- Add constant for intercept ---
-X_train_df_const = sm.add_constant(X_train_df)
+Larger magnitude means stronger impact (after scaling/encoding).
 
-# --- Fit statsmodels Logit for inference ---
-logit_model = sm.Logit(y_train, X_train_df_const)
-result = logit_model.fit(disp=False)
+You can also exponentiate it (Odds Ratio = exp(coef)):
 
-# --- Extract coefficients and inference metrics ---
-summary_table = result.summary2().tables[1]
-summary_table = summary_table.rename(columns={
-    'Coef.': 'Coefficient',
-    'Std.Err.': 'Std_Error',
-    'P>|z|': 'P_value'
-})
+Odds Ratio > 1 → increases likelihood.
 
-# --- Compute Odds Ratios ---
-summary_table['Odds_Ratio'] = summary_table['Coefficient'].apply(lambda x: np.exp(x))
+Odds Ratio < 1 → decreases likelihood.
 
-# --- Compute VIF ---
-vif_data = pd.DataFrame()
-vif_data['Feature'] = X_train_df.columns
-vif_data['VIF'] = [variance_inflation_factor(X_train_df.values, i)
-                   for i in range(X_train_df.shape[1])]
+2. Standard Error (std err)
+Measures uncertainty in the coefficient estimate.
 
-# Merge VIF into summary table
-summary_with_vif = summary_table.merge(vif_data, left_index=True, right_on='Feature', how='left')
+A small standard error means we are confident about that coefficient.
 
-# Save to CSV
-summary_with_vif.to_csv("logisticregression_detailed_results.csv", index=False)
-print("\nDetailed Logistic Regression results saved: logisticregression_detailed_results.csv")
+Large standard error means the estimate is unstable (could vary a lot if we sampled again).
+
+3. p-Value
+Tests if the coefficient is significantly different from 0.
+
+Low p-value (typically < 0.05):
+
+The feature is statistically significant.
+
+The relationship between that feature and outcome is unlikely to be random.
+
+High p-value (> 0.05):
+
+The feature might not have meaningful impact (or might need more data).
+
+4. Variance Inflation Factor (VIF)
+Measures multicollinearity (how much a feature is correlated with other features).
+
+Formula:
+
+VIF
+𝑖
+=
+1
+1
+−
+𝑅
+𝑖
+2
+VIF 
+i
+​
+ = 
+1−R 
+i
+2
+​
+ 
+1
+​
+ 
+where 
+𝑅
+𝑖
+2
+R 
+i
+2
+​
+  is how well feature 
+𝑖
+i can be predicted from other features.
+
+Interpretation:
+
+VIF ~ 1 → no correlation with other features.
+
+VIF > 5 → moderate correlation (check carefully).
+
+VIF > 10 → strong multicollinearity (bad, coefficients may be unstable).
+
+5. Explaining the Model Once We Have Results
+After running the pipeline + statsmodels steps:
+
+Look at top coefficients (sorted by abs value):
+
+Which features most increase or decrease trade probability?
+
+Check p-values:
+
+Focus on significant features only (p < 0.05).
+
+Check VIF:
+
+If a feature has VIF > 10, consider:
+
+Removing it.
+
+Combining correlated features.
+
+Use odds ratios (exp(coef)):
+
+Easy to explain to business teams (e.g., "for every increase of 1 std dev in volume, odds of trade increase by 1.8x").
