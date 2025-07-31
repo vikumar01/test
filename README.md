@@ -1,15 +1,24 @@
-from sklearn.metrics import roc_curve
+'''
+# === Save Logistic Regression Coefficients (if best model is LogisticRegression) ===
+if best_model_name == "LogisticRegression":
+    classifier = best_pipeline.named_steps["classifier"]
+    preprocessor = best_pipeline.named_steps["preprocessor"]
 
-fpr, tpr, roc_thresholds = roc_curve(y_val, y_probs)
-j_scores = tpr - fpr
-j_best_index = np.argmax(j_scores)
-j_best_threshold = roc_thresholds[j_best_index]
+    # Get feature names after preprocessing
+    feature_names = []
+    for name, transformer, cols in preprocessor.transformers_:
+        if name == 'num':
+            feature_names.extend(cols)
+        elif name == 'cat':
+            ohe = transformer
+            feature_names.extend(ohe.get_feature_names_out(cols))
 
-print("Threshold using Youden’s J:", j_best_threshold)
+    # Coefficients for logistic regression
+    coefs = classifier.coef_[0]
+    coef_df = pd.DataFrame(
+        pd.Series(coefs, index=feature_names).sort_values(ascending=False),
+        columns=["Coefficient"]
+    )
 
-
----
-y_pred_new = (y_probs >= best_threshold).astype(int)
-
-from sklearn.metrics import classification_report
-print(classification_report(y_val, y_pred_new))
+    coef_df.to_csv("logisticregressionresults.csv")
+    print("\nLogistic Regression coefficients saved: logisticregressionresults.csv")
