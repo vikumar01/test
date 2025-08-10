@@ -1,11 +1,21 @@
-from sklearn.linear_model import LinearRegression
+# Save the mapping to decode later
+abc_mapping = dict(enumerate(df['abc'].astype('category').cat.categories))
 
-not_null = df[df[target_col].notnull()]
-X_train = not_null[top_features]
-y_train = not_null[target_col]
+# Split data into known and missing target
+not_null = df[df['abc'].notnull()]
+missing = df[df['abc'].isnull()]
 
-model = LinearRegression()
+# Prepare training data
+X_train = not_null[['name_encoded']]
+y_train = not_null['abc_encoded']
+
+# Train classifier
+model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
-missing = df[df[target_col].isnull()]
-df.loc[df[target_col].isnull(), target_col] = model.predict(missing[top_features])
+# Predict for missing rows
+X_missing = missing[['name_encoded']]
+preds = model.predict(X_missing)
+
+# Fill in the missing 'abc' values with decoded predictions
+df.loc[df['abc'].isnull(), 'abc'] = [abc_mapping[p] for p in preds]
