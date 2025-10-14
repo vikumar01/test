@@ -198,30 +198,12 @@ Flag: recurring_daily, recurring_weekly, recurring_monthly (true/false by chosen
 
 Visualization per suspicious pair (calendar heatmap + amount time series)
 
-8) Next steps I can do for you (pick one)
+-- Date range
+SELECT 
+  MIN(date_trunc('day', ts))::date AS start_date,
+  MAX(date_trunc('day', ts))::date AS end_date,
+  (MAX(date_trunc('day', ts))::date - MIN(date_trunc('day', ts))::date) + 1 AS total_days,
+  COUNT(DISTINCT date_trunc('week', ts)) AS total_weeks,
+  COUNT(DISTINCT date_trunc('month', ts)) AS total_months
+FROM transactions;
 
-Run the exact pandas script on your CSV if you upload the file; I’ll process and return a table of recurring pairs + visualizations.
-
-Provide ready-to-run notebook (with calendar heatmaps) tailored to your data layout.
-
-Add autocorrelation / FFT code to find precise periodicities automatically across all pairs.
-
-Tell me which of the above you want me to run (or just paste a small sample of your data — 20–50 rows — and I’ll demo results). If you prefer only SQL, I can add optimized queries for large datasets (indexes, partition advice).
-
-You said:
-Run the exact pandas script on your CSV if you upload the file; I’ll process and return a table of recurring pairs + visualizations.
-ChatGPT said:
-
-Sure! Please upload your CSV file (or Excel file) that contains the transaction data.
-
-✅ Once you upload, I’ll:
-
-Load it in pandas
-
-Detect recurring transfer patterns (daily/weekly/monthly)
-
-Return tables of the top recurring account pairs
-
-Create visualizations (calendar-style or trend plots)
-
-Just upload the file whenever you're ready, and I’ll take it from there.
